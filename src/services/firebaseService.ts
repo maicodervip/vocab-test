@@ -23,6 +23,36 @@ const LANGUAGE_NAMES: { [key in Language]: string } = {
   english: 'English',
 };
 
+// Helper function to retry Firestore operations
+async function retryOperation<T>(
+  operation: () => Promise<T>,
+  maxRetries = 3,
+  delay = 1000
+): Promise<T> {
+  let lastError: Error | null = null;
+  
+  for (let i = 0; i < maxRetries; i++) {
+    try {
+      return await operation();
+    } catch (error: any) {
+      lastError = error;
+      console.warn(`Operation failed (attempt ${i + 1}/${maxRetries}):`, error.message);
+      
+      // Don't retry auth errors
+      if (error.code?.startsWith('auth/')) {
+        throw error;
+      }
+      
+      // Wait before retrying
+      if (i < maxRetries - 1) {
+        await new Promise(resolve => setTimeout(resolve, delay * (i + 1)));
+      }
+    }
+  }
+  
+  throw lastError || new Error('Operation failed after retries');
+}
+
 // ============= AUTH FUNCTIONS =============
 
 export async function registerUser(username: string, password: string): Promise<FirebaseUser> {
@@ -88,15 +118,21 @@ export async function createWorkspace(language: Language): Promise<Workspace> {
   const user = getCurrentUser();
   if (!user) throw new Error('No user logged in');
   
-  try {
+  return retryOperation(async () => {
     const userRef = doc(db, 'users', user.uid);
     const userDoc = await getDoc(userRef);
     
     if (!userDoc.exists()) {
-      throw new Error('User document not found');
+      // Create user doc if not exists
+      await setDoc(userRef, {
+        username: user.email?.split('@')[0] || user.uid,
+        email: user.email,
+        createdAt: new Date().toISOString(),
+        workspaces: [],
+      });
     }
     
-    const userData = userDoc.data();
+    const userData = userDoc.exists() ? userDoc.data() : { workspaces: [] };
     const workspaces = userData.workspaces || [];
     
     // Check if workspace for this language already exists
@@ -131,28 +167,34 @@ export async function createWorkspace(language: Language): Promise<Workspace> {
     });
     
     return workspace;
-  } catch (error: any) {
-    console.error('Error creating workspace:', error);
-    throw new Error(error.message || 'Failed to create workspace');
-  }
+  });
 }
 
 export async function getUserWorkspaces(): Promise<Workspace[]> {
   const user = getCurrentUser();
   if (!user) return [];
   
-  try {
+  return retryOperation(async () => {
     const userRef = doc(db, 'users', user.uid);
     const userDoc = await getDoc(userRef);
     
-    if (!userDoc.exists()) return [];
+    if (!userDoc.exists()) {
+      // Create user doc if not exists
+      await setDoc(userRef, {
+        username: user.email?.split('@')[0] || user.uid,
+        email: user.email,
+        createdAt: new Date().toISOString(),
+        workspaces: [],
+      });
+      return [];
+    }
     
     const userData = userDoc.data();
     return userData.workspaces || [];
-  } catch (error) {
+  }, 3, 500).catch((error) => {
     console.error('Error getting workspaces:', error);
     return [];
-  }
+  });
 }
 
 export async function deleteWorkspace(workspaceId: string): Promise<void> {
