@@ -6,4 +6,16 @@ export default defineConfig({
   server: {
     port: 5174,
   },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'firebase': ['firebase/app', 'firebase/auth', 'firebase/firestore'],
+          'xlsx': ['xlsx'],
+          'vendor': ['react', 'react-dom']
+        }
+      }
+    },
+    chunkSizeWarningLimit: 1000
+  }
 })

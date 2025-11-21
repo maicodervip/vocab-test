@@ -1,12 +1,14 @@
-import { useState, useEffect } from 'react';
-import HomePage from './components/HomePage';
-import QuizPage from './components/QuizPage';
-import LoginPage from './components/LoginPage';
+import { useState, useEffect, lazy, Suspense } from 'react';
 import { VocabUnit } from './types';
 import { onAuthStateChanged } from 'firebase/auth';
 import { auth } from './config/firebase';
 import { getCurrentUsername } from './services/firebaseService';
 import './index.css';
+
+// Lazy load components
+const HomePage = lazy(() => import('./components/HomePage'));
+const QuizPage = lazy(() => import('./components/QuizPage'));
+const LoginPage = lazy(() => import('./components/LoginPage'));
 
 function App() {
   const [currentUser, setCurrentUser] = useState<string | null>(null);
@@ -53,13 +55,22 @@ function App() {
     );
   }
 
-  if (!currentUser) {
-    return <LoginPage onLogin={handleLogin} />;
-  }
-
   return (
-    <>
-      {selectedUnit ? (
+    <Suspense fallback={
+      <div style={{ 
+        display: 'flex', 
+        justifyContent: 'center', 
+        alignItems: 'center', 
+        height: '100vh',
+        fontSize: '1.2rem',
+        color: '#666'
+      }}>
+        Đang tải...
+      </div>
+    }>
+      {!currentUser ? (
+        <LoginPage onLogin={handleLogin} />
+      ) : selectedUnit ? (
         <QuizPage 
           unit={selectedUnit} 
           onBack={() => setSelectedUnit(null)} 
@@ -70,7 +81,7 @@ function App() {
           onLogout={handleLogout}
         />
       )}
-    </>
+    </Suspense>
   );
 }
 
