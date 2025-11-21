@@ -85,10 +85,7 @@ export async function getCurrentUsername(): Promise<string | null> {
 
 export async function createWorkspace(language: Language): Promise<Workspace> {
   const user = getCurrentUser();
-  if (!user) {
-    alert('LỖI: Không có user đăng nhập');
-    throw new Error('No user logged in');
-  }
+  if (!user) throw new Error('No user logged in');
   
   console.log('[createWorkspace] Starting for language:', language);
   console.log('[createWorkspace] User:', user.uid, user.email);
@@ -98,14 +95,10 @@ export async function createWorkspace(language: Language): Promise<Workspace> {
   try {
     // Get or create user document
     console.log('[createWorkspace] Getting user document...');
-    alert('Bước 1: Đang lấy user document...');
-    
     let userDoc = await getDoc(userRef);
     
     if (!userDoc.exists()) {
       console.log('[createWorkspace] User doc not found, creating...');
-      alert('Bước 2: User doc không tồn tại, đang tạo...');
-      
       const newUserData = {
         username: user.email?.split('@')[0] || user.uid,
         email: user.email,
@@ -114,32 +107,25 @@ export async function createWorkspace(language: Language): Promise<Workspace> {
       };
       await setDoc(userRef, newUserData);
       console.log('[createWorkspace] User document created');
-      alert('Bước 2: Đã tạo user document');
       
       // Re-fetch to confirm
       userDoc = await getDoc(userRef);
       if (!userDoc.exists()) {
-        alert('LỖI: Không thể tạo user document');
         throw new Error('Failed to create user document');
       }
-    } else {
-      alert('Bước 1: Đã có user document');
     }
     
     const userData = userDoc.data();
     const workspaces = userData.workspaces || [];
     console.log('[createWorkspace] Current workspaces:', workspaces.length);
-    alert('Bước 3: Số workspace hiện tại: ' + workspaces.length);
     
     // Check if workspace for this language already exists
     if (workspaces.some((w: Workspace) => w.language === language)) {
-      alert('LỖI: Workspace cho ngôn ngữ này đã tồn tại');
       throw new Error('Không gian học tập cho ngôn ngữ này đã tồn tại');
     }
     
     // Max 3 workspaces
     if (workspaces.length >= 3) {
-      alert('LỖI: Đã đủ 3 workspace');
       throw new Error('Tối đa 3 không gian học tập');
     }
     
@@ -151,7 +137,6 @@ export async function createWorkspace(language: Language): Promise<Workspace> {
     };
     
     console.log('[createWorkspace] Creating workspace:', workspace.id);
-    alert('Bước 4: Đang cập nhật user document với workspace: ' + workspace.id);
     
     // Update user document with new workspace
     const updatedWorkspaces = [...workspaces, workspace];
@@ -159,10 +144,8 @@ export async function createWorkspace(language: Language): Promise<Workspace> {
       workspaces: updatedWorkspaces
     });
     console.log('[createWorkspace] User document updated');
-    alert('Bước 5: Đã cập nhật user document');
     
     // Create workspace document
-    alert('Bước 6: Đang tạo workspace document...');
     await setDoc(doc(db, 'workspaces', workspace.id), {
       userId: user.uid,
       language,
@@ -171,12 +154,10 @@ export async function createWorkspace(language: Language): Promise<Workspace> {
       units: []
     });
     console.log('[createWorkspace] Workspace document created successfully');
-    alert('Bước 7: Tạo workspace document thành công!');
     
     return workspace;
   } catch (error: any) {
     console.error('[createWorkspace] Error:', error);
-    alert('LỖI CUỐI CÙNG:\nMessage: ' + error.message + '\nCode: ' + error.code + '\nName: ' + error.name);
     throw error;
   }
 }
