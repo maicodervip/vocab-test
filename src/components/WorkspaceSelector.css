@@ -1,0 +1,263 @@
+.workspace-selector {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.workspace-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.create-workspace-button {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  border: none;
+  box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+}
+
+.create-workspace-button:hover {
+  box-shadow: 0 6px 20px rgba(16, 185, 129, 0.5);
+}
+
+.workspaces-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.5rem;
+}
+
+.workspace-card {
+  padding: 2rem;
+  cursor: pointer;
+  transition: all 0.3s;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  position: relative;
+}
+
+.workspace-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
+  border-color: rgba(102, 126, 234, 0.5);
+}
+
+.workspace-icon {
+  font-size: 4rem;
+  margin-bottom: 0.5rem;
+}
+
+.workspace-info {
+  text-align: center;
+}
+
+.workspace-name {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #f1f5f9;
+  margin-bottom: 0.5rem;
+}
+
+.workspace-desc {
+  color: #94a3b8;
+  font-size: 0.95rem;
+}
+
+.delete-workspace-button {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: rgba(239, 68, 68, 0.2);
+  color: #fca5a5;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  padding: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 36px;
+  min-height: 36px;
+}
+
+.delete-workspace-button:hover {
+  background: rgba(239, 68, 68, 0.3);
+  border-color: rgba(239, 68, 68, 0.5);
+  transform: none;
+}
+
+/* Modal */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+}
+
+.modal-content {
+  width: 100%;
+  max-width: 500px;
+  padding: 2rem;
+}
+
+.modal-title {
+  font-size: 1.5rem;
+  color: #f1f5f9;
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+
+.language-selection {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.language-option {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  background: rgba(30, 41, 59, 0.6);
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.25s;
+  text-align: left;
+}
+
+.language-option:hover {
+  background: rgba(30, 41, 59, 0.8);
+  border-color: rgba(102, 126, 234, 0.3);
+  transform: translateY(-2px);
+}
+
+.language-option.selected {
+  background: rgba(102, 126, 234, 0.2);
+  border-color: rgba(102, 126, 234, 0.5);
+}
+
+.language-flag {
+  font-size: 2rem;
+}
+
+.language-name {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #f1f5f9;
+  flex: 1;
+}
+
+.language-desc {
+  color: #94a3b8;
+  font-size: 0.9rem;
+}
+
+.no-languages {
+  text-align: center;
+  color: #94a3b8;
+  padding: 2rem;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 1rem;
+}
+
+.cancel-button,
+.confirm-button {
+  flex: 1;
+  padding: 0.875rem;
+  font-size: 1rem;
+}
+
+.cancel-button {
+  background: rgba(100, 116, 139, 0.3);
+  color: #cbd5e1;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.cancel-button:hover {
+  background: rgba(100, 116, 139, 0.4);
+}
+
+.confirm-button {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+}
+
+.confirm-button:hover:not(:disabled) {
+  box-shadow: 0 6px 20px rgba(16, 185, 129, 0.5);
+}
+
+.confirm-button:disabled {
+  background: #475569;
+  box-shadow: none;
+  opacity: 0.5;
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+  .workspace-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .create-workspace-button {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .workspaces-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .workspace-card {
+    padding: 1.5rem;
+  }
+
+  .workspace-icon {
+    font-size: 3rem;
+  }
+
+  .workspace-name {
+    font-size: 1.25rem;
+  }
+
+  .modal-content {
+    padding: 1.5rem;
+  }
+
+  .modal-title {
+    font-size: 1.25rem;
+  }
+
+  .language-option {
+    padding: 0.875rem;
+  }
+
+  .language-flag {
+    font-size: 1.75rem;
+  }
+
+  .language-name {
+    font-size: 1.1rem;
+  }
+}

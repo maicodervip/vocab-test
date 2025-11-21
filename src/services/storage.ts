@@ -1,15 +1,17 @@
 // Local Storage Service for managing users and vocab units
-import { VocabUnit } from '../types';
+import { VocabUnit, Workspace, Language } from '../types';
 
 const STORAGE_KEYS = {
   CURRENT_USER: 'vocab_current_user',
+  CURRENT_WORKSPACE: 'vocab_current_workspace',
   USERS_DATA: 'vocab_users_data',
 };
 
 export interface UserData {
   username: string;
   password: string;
-  units: VocabUnit[];
+  workspaces: Workspace[];
+  units: { [workspaceId: string]: VocabUnit[] };
   createdAt: string;
 }
 
@@ -27,9 +29,20 @@ export function setCurrentUser(username: string): void {
   localStorage.setItem(STORAGE_KEYS.CURRENT_USER, username);
 }
 
+// Get current workspace
+export function getCurrentWorkspace(): string | null {
+  return localStorage.getItem(STORAGE_KEYS.CURRENT_WORKSPACE);
+}
+
+// Set current workspace
+export function setCurrentWorkspace(workspaceId: string): void {
+  localStorage.setItem(STORAGE_KEYS.CURRENT_WORKSPACE, workspaceId);
+}
+
 // Logout user
 export function logoutUser(): void {
   localStorage.removeItem(STORAGE_KEYS.CURRENT_USER);
+  localStorage.removeItem(STORAGE_KEYS.CURRENT_WORKSPACE);
 }
 
 // Get all users data
@@ -43,6 +56,12 @@ function saveAllUsersData(data: UsersStorage): void {
   localStorage.setItem(STORAGE_KEYS.USERS_DATA, JSON.stringify(data));
 }
 
+const LANGUAGE_NAMES: { [key in Language]: string } = {
+  japanese: '日本語',
+  chinese: '中文',
+  english: 'English',
+};
+
 // Create new user
 export function createUser(username: string, password: string): UserData {
   const allUsers = getAllUsersData();
@@ -51,13 +70,13 @@ export function createUser(username: string, password: string): UserData {
     throw new Error('User already exists');
   }
   
-  // Simple hash (in production, use proper encryption)
-  const hashedPassword = btoa(password); // Base64 encode
+  const hashedPassword = btoa(password);
   
   allUsers[username] = {
     username,
     password: hashedPassword,
-    units: [],
+    workspaces: [],
+    units: {},
     createdAt: new Date().toISOString(),
   };
   saveAllUsersData(allUsers);
@@ -98,32 +117,96 @@ export function getCurrentUserData(): UserData | null {
   return allUsers[username] || null;
 }
 
-// Save units for current user
-export function saveUnitsForCurrentUser(units: VocabUnit[]): void {
+// Create workspace
+export function createWorkspace(language: Language): Workspace {
+  const username = getCurrentUser();
+  if (!username) throw new Error('No user logged in');
+  
+  const allUsers = getAllUsersData();
+  const user = allUsers[username];
+  
+  if (!user) throw new Error('User not found');
+  
+  // Check if workspace for this language already exists
+  if (user.workspaces.some(w => w.language === language)) {
+    throw new Error('Workspace for this language already exists');
+  }
+  
+  // Max 3 workspaces
+  if (user.workspaces.length >= 3) {
+    throw new Error('Maximum 3 workspaces allowed');
+  }
+  
+  const workspace: Workspace = {
+    id: `${language}-${Date.now()}`,
+    language,
+    name: LANGUAGE_NAMES[language],
+    createdAt: new Date().toISOString(),
+  };
+  
+  user.workspaces.push(workspace);
+  user.units[workspace.id] = [];
+  saveAllUsersData(allUsers);
+  
+  return workspace;
+}
+
+// Get all workspaces for current user
+export function getUserWorkspaces(): Workspace[] {
+  const userData = getCurrentUserData();
+  return userData?.workspaces || [];
+}
+
+// Delete workspace
+export function deleteWorkspace(workspaceId: string): void {
   const username = getCurrentUser();
   if (!username) return;
   
   const allUsers = getAllUsersData();
   if (allUsers[username]) {
-    allUsers[username].units = units;
+    allUsers[username].workspaces = allUsers[username].workspaces.filter(
+      w => w.id !== workspaceId
+    );
+    delete allUsers[username].units[workspaceId];
+    saveAllUsersData(allUsers);
+    
+    if (getCurrentWorkspace() === workspaceId) {
+      localStorage.removeItem(STORAGE_KEYS.CURRENT_WORKSPACE);
+    }
+  }
+}
+
+// Save units for current workspace
+export function saveUnitsForCurrentWorkspace(units: VocabUnit[]): void {
+  const username = getCurrentUser();
+  const workspaceId = getCurrentWorkspace();
+  if (!username || !workspaceId) return;
+  
+  const allUsers = getAllUsersData();
+  if (allUsers[username]) {
+    allUsers[username].units[workspaceId] = units;
     saveAllUsersData(allUsers);
   }
 }
 
-// Get units for current user
-export function getUnitsForCurrentUser(): VocabUnit[] {
+// Get units for current workspace
+export function getUnitsForCurrentWorkspace(): VocabUnit[] {
   const userData = getCurrentUserData();
-  return userData?.units || [];
+  const workspaceId = getCurrentWorkspace();
+  if (!userData || !workspaceId) return [];
+  
+  return userData.units[workspaceId] || [];
 }
 
-// Delete a unit for current user
-export function deleteUnitForCurrentUser(fileName: string): void {
+// Delete a unit for current workspace
+export function deleteUnitForCurrentWorkspace(fileName: string): void {
   const username = getCurrentUser();
-  if (!username) return;
+  const workspaceId = getCurrentWorkspace();
+  if (!username || !workspaceId) return;
   
   const allUsers = getAllUsersData();
-  if (allUsers[username]) {
-    allUsers[username].units = allUsers[username].units.filter(
+  if (allUsers[username] && allUsers[username].units[workspaceId]) {
+    allUsers[username].units[workspaceId] = allUsers[username].units[workspaceId].filter(
       unit => unit.fileName !== fileName
     );
     saveAllUsersData(allUsers);
