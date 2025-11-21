@@ -114,7 +114,16 @@ export function getCurrentUserData(): UserData | null {
   if (!username) return null;
   
   const allUsers = getAllUsersData();
-  return allUsers[username] || null;
+  const userData = allUsers[username];
+  
+  // Migration: Convert old data structure to new workspace structure
+  if (userData && (!userData.workspaces || !Array.isArray(userData.workspaces))) {
+    userData.workspaces = [];
+    userData.units = {};
+    saveAllUsersData(allUsers);
+  }
+  
+  return userData || null;
 }
 
 // Create workspace

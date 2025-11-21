@@ -34,10 +34,15 @@ export default function HomePage({ onStartQuiz, onLogout }: HomePageProps) {
     
     const workspaceId = getCurrentWorkspace();
     if (workspaceId) {
-      const workspace = getUserWorkspaces().find(w => w.id === workspaceId);
+      const userWorkspaces = getUserWorkspaces();
+      const workspace = userWorkspaces.find(w => w.id === workspaceId);
       if (workspace) {
         setCurrentWorkspaceState(workspace);
         loadUnits();
+      } else {
+        // Workspace not found or invalid, clear it to show selector
+        localStorage.removeItem('vocab_current_workspace');
+        setCurrentWorkspaceState(null);
       }
     }
   }, []);
