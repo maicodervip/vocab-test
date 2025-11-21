@@ -4,17 +4,13 @@
 
 ## ✨ Tính năng
 
-- 👤 **Quản lý User**: Đăng ký/đăng nhập với mật khẩu
-- 💾 **Lưu trữ vĩnh viễn**: Dữ liệu được lưu tự động (localStorage)
-- 📚 **Quản lý Units**: Tải lên và lưu trữ nhiều file Excel
-- 🗑️ **Xóa Units**: Xóa units không cần thiết
+- 📚 **Quản lý Units**: Tải lên nhiều file Excel chứa từ vựng
 - 🎯 **2 Chế độ học**:
   - Tiếng Nhật → Tiếng Việt
   - Tiếng Việt → Tiếng Nhật
 - ✅ **Kiểm tra tức thời**: Kiểm tra đáp án ngay lập tức
 - 📊 **Thống kê chi tiết**: Xem điểm số và danh sách từ sai
 - 🔄 **Ôn tập thông minh**: Ôn lại chỉ những từ trả lời sai
-- 📱 **Responsive**: Tối ưu cho mobile và tablet
 - 🎨 **UI/UX đẹp**: Giao diện hiện đại với hiệu ứng mượt mà
 
 ## 📋 Yêu cầu
@@ -53,30 +49,11 @@ Ví dụ:
 
 ## 🎮 Cách sử dụng
 
-1. **Đăng ký/Đăng nhập**: Tạo tài khoản hoặc đăng nhập với tài khoản có sẵn
-2. **Tải file Excel**: Click nút "Tải file Excel" và chọn file từ vựng
-3. **Chọn Unit**: Click vào unit bạn muốn học
-4. **Chọn chế độ**: Chọn chế độ học phù hợp với bạn
-5. **Làm bài**: Nhập câu trả lời và nhấn Enter hoặc nút "Kiểm tra"
-6. **Xem kết quả**: Xem điểm số và ôn lại những từ sai
-
-## 🚀 Deploy
-
-Xem hướng dẫn chi tiết tại [DEPLOY.md](./DEPLOY.md)
-
-### Deploy nhanh:
-```bash
-# Cài Vercel CLI
-npm install -g vercel
-
-# Deploy
-vercel --prod
-```
-
-Hoặc sử dụng script:
-```bash
-./deploy.sh
-```
+1. **Tải file Excel**: Click nút "Tải file Excel" và chọn file từ vựng
+2. **Chọn Unit**: Click vào unit bạn muốn học
+3. **Chọn chế độ**: Chọn chế độ học phù hợp với bạn
+4. **Làm bài**: Nhập câu trả lời và nhấn Enter hoặc nút "Kiểm tra"
+5. **Xem kết quả**: Xem điểm số và ôn lại những từ sai
 
 ## 🛠️ Công nghệ
 
@@ -95,29 +72,16 @@ vocab_test/
 │   │   ├── HomePage.tsx       # Trang chủ
 │   │   ├── HomePage.css
 │   │   ├── QuizPage.tsx       # Trang quiz
-│   │   ├── QuizPage.css
-│   │   ├── LoginPage.tsx      # Trang đăng nhập
-│   │   └── LoginPage.css
-│   ├── services/
-│   │   └── storage.ts         # LocalStorage service
+│   │   └── QuizPage.css
 │   ├── types.ts               # TypeScript types
 │   ├── utils.ts               # Utilities
 │   ├── App.tsx                # Main app
 │   ├── main.tsx               # Entry point
 │   └── index.css              # Global styles
 ├── vocab_file/                # Thư mục chứa file Excel
-├── deploy.sh                  # Deploy script
-├── DEPLOY.md                  # Hướng dẫn deploy
 ├── package.json
 └── vite.config.ts
 ```
-
-## 💾 Lưu trữ dữ liệu
-
-- Dữ liệu được lưu trong **localStorage** của trình duyệt
-- Mỗi user có dữ liệu riêng biệt
-- Dữ liệu sẽ tồn tại vĩnh viễn (trừ khi xóa cache)
-- **Lưu ý**: Dữ liệu chỉ tồn tại trên thiết bị cụ thể, không đồng bộ giữa các thiết bị
 
 ## 💡 Tips
 

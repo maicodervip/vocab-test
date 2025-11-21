@@ -1,19 +1,18 @@
-export type Language = 'japanese' | 'chinese' | 'english';
-
 export interface VocabItem {
-  japanese?: string;
-  japaneseAlt?: string;
-  chinese?: string;
-  english?: string;
+  japanese: string;
+  japaneseAlt?: string; // Đáp án thay thế (optional)
   vietnamese: string;
 }
 
 export interface VocabUnit {
   name: string;
   fileName: string;
-  language: Language;
   items: VocabItem[];
 }
+
+export type QuizMode = 'jp-to-vn' | 'vn-to-jp';
+
+export type Language = 'japanese' | 'chinese' | 'english';
 
 export interface Workspace {
   id: string;
@@ -21,5 +20,3 @@ export interface Workspace {
   name: string;
   createdAt: string;
 }
-
-export type QuizMode = 'foreign-to-vn' | 'vn-to-foreign';

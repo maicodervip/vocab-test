@@ -40,21 +40,15 @@ button {
   font-family: inherit;
   cursor: pointer;
   transition: all 0.25s;
-  -webkit-tap-highlight-color: transparent;
 }
 
 button:hover {
   transform: translateY(-2px);
 }
 
-button:active {
-  transform: translateY(0);
-}
-
 button:disabled {
   opacity: 0.5;
   cursor: not-allowed;
-  transform: none;
 }
 
 input {
@@ -66,7 +60,6 @@ input {
   background-color: #1e293b;
   color: white;
   transition: all 0.25s;
-  -webkit-tap-highlight-color: transparent;
 }
 
 input:focus {
@@ -88,33 +81,4 @@ input:focus {
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-}
-
-/* Mobile optimizations */
-@media (max-width: 768px) {
-  :root {
-    font-size: 16px;
-  }
-
-  body {
-    min-width: 100%;
-  }
-}
-
-@media (max-width: 480px) {
-  :root {
-    font-size: 15px;
-  }
-
-  button {
-    padding: 0.55em 1em;
-  }
-
-  input {
-    padding: 0.7em 1em;
-  }
-
-  .card {
-    padding: 1.5rem;
-  }
 }

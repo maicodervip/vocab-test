@@ -1,7 +1,34 @@
 import * as XLSX from 'xlsx';
-import { VocabUnit, VocabItem, Language } from './types';
+import { VocabUnit, VocabItem } from './types';
 
-export async function parseExcelFile(file: File, language: Language): Promise<VocabUnit | null> {
+export async function loadVocabUnits(): Promise<VocabUnit[]> {
+  const units: VocabUnit[] = [];
+  
+  try {
+    // In a real app, you'd list files from the vocab_file directory
+    // For now, we'll provide a way to upload Excel files
+    const files = await getExcelFiles();
+    
+    for (const file of files) {
+      const unit = await parseExcelFile(file);
+      if (unit) {
+        units.push(unit);
+      }
+    }
+  } catch (error) {
+    console.error('Error loading vocab units:', error);
+  }
+  
+  return units;
+}
+
+async function getExcelFiles(): Promise<File[]> {
+  // This will be populated by user file selection
+  // or by reading from the vocab_file directory
+  return [];
+}
+
+export async function parseExcelFile(file: File): Promise<VocabUnit | null> {
   try {
     const data = await file.arrayBuffer();
     const workbook = XLSX.read(data, { type: 'array' });
@@ -10,46 +37,30 @@ export async function parseExcelFile(file: File, language: Language): Promise<Vo
     
     const items: VocabItem[] = [];
     
+    // Skip header row if exists, start from row 1
     for (let i = 0; i < jsonData.length; i++) {
       const row = jsonData[i];
-      
-      if (language === 'english') {
-        // English: Cột 1 - English, Cột 2 - Vietnamese
-        if (row[0] && row[1]) {
-          items.push({
-            english: String(row[0]).trim(),
-            vietnamese: String(row[1]).trim(),
-          });
+      // Cột 1: Ngôn ngữ (bắt buộc)
+      // Cột 2: Ngôn ngữ đáp án 2 (optional)
+      // Cột 3: Tiếng Việt (bắt buộc)
+      if (row[0] && row[2]) {
+        const item: VocabItem = {
+          japanese: String(row[0]).trim(),
+          vietnamese: String(row[2]).trim(),
+        };
+        
+        // Thêm đáp án thay thế nếu có
+        if (row[1] && String(row[1]).trim()) {
+          item.japaneseAlt = String(row[1]).trim();
         }
-      } else if (language === 'japanese') {
-        // Japanese: Cột 1 - Japanese, Cột 2 - Japanese Alt (optional), Cột 3 - Vietnamese
-        if (row[0] && row[2]) {
-          const item: VocabItem = {
-            japanese: String(row[0]).trim(),
-            vietnamese: String(row[2]).trim(),
-          };
-          
-          if (row[1] && String(row[1]).trim()) {
-            item.japaneseAlt = String(row[1]).trim();
-          }
-          
-          items.push(item);
-        }
-      } else if (language === 'chinese') {
-        // Chinese: Cột 1 - Chinese, Cột 2 - Vietnamese
-        if (row[0] && row[1]) {
-          items.push({
-            chinese: String(row[0]).trim(),
-            vietnamese: String(row[1]).trim(),
-          });
-        }
+        
+        items.push(item);
       }
     }
     
     return {
       name: file.name.replace(/\.(xlsx?|csv)$/i, ''),
       fileName: file.name,
-      language,
       items,
     };
   } catch (error) {
