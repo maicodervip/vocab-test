@@ -33,13 +33,21 @@ export default function WorkspaceSelector({ workspaces, onSelectWorkspace, onWor
     }
 
     setLoading(true);
+    setError('');
+    console.log('[WorkspaceSelector] Creating workspace for:', selectedLanguage);
+    
     try {
-      await createWorkspace(selectedLanguage);
+      const workspace = await createWorkspace(selectedLanguage);
+      console.log('[WorkspaceSelector] Workspace created:', workspace);
+      
       await onWorkspacesChange();
+      console.log('[WorkspaceSelector] Workspaces refreshed');
+      
       setShowCreateModal(false);
       setSelectedLanguage(null);
       setError('');
     } catch (err) {
+      console.error('[WorkspaceSelector] Error creating workspace:', err);
       setError(err instanceof Error ? err.message : 'Đã có lỗi xảy ra');
     } finally {
       setLoading(false);

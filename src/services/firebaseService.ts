@@ -118,11 +118,18 @@ export async function createWorkspace(language: Language): Promise<Workspace> {
   const user = getCurrentUser();
   if (!user) throw new Error('No user logged in');
   
+  console.log('[createWorkspace] Starting for language:', language);
+  console.log('[createWorkspace] User:', user.uid, user.email);
+  
   return retryOperation(async () => {
     const userRef = doc(db, 'users', user.uid);
+    console.log('[createWorkspace] Getting user document...');
+    
     const userDoc = await getDoc(userRef);
+    console.log('[createWorkspace] User doc exists:', userDoc.exists());
     
     if (!userDoc.exists()) {
+      console.log('[createWorkspace] Creating user document...');
       // Create user doc if not exists
       await setDoc(userRef, {
         username: user.email?.split('@')[0] || user.uid,
@@ -130,10 +137,12 @@ export async function createWorkspace(language: Language): Promise<Workspace> {
         createdAt: new Date().toISOString(),
         workspaces: [],
       });
+      console.log('[createWorkspace] User document created');
     }
     
     const userData = userDoc.exists() ? userDoc.data() : { workspaces: [] };
     const workspaces = userData.workspaces || [];
+    console.log('[createWorkspace] Current workspaces:', workspaces.length);
     
     // Check if workspace for this language already exists
     if (workspaces.some((w: Workspace) => w.language === language)) {
@@ -152,12 +161,17 @@ export async function createWorkspace(language: Language): Promise<Workspace> {
       createdAt: new Date().toISOString(),
     };
     
+    console.log('[createWorkspace] Creating workspace:', workspace.id);
+    
     // Add workspace to user document
+    console.log('[createWorkspace] Updating user document...');
     await updateDoc(userRef, {
       workspaces: arrayUnion(workspace)
     });
+    console.log('[createWorkspace] User document updated');
     
     // Create workspace document
+    console.log('[createWorkspace] Creating workspace document...');
     await setDoc(doc(db, 'workspaces', workspace.id), {
       userId: user.uid,
       language,
@@ -165,6 +179,7 @@ export async function createWorkspace(language: Language): Promise<Workspace> {
       createdAt: workspace.createdAt,
       units: []
     });
+    console.log('[createWorkspace] Workspace document created successfully');
     
     return workspace;
   });
