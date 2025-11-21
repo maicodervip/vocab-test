@@ -1,7 +1,7 @@
 // Firebase Configuration
 import { initializeApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
-import { getFirestore } from 'firebase/firestore';
+import { getFirestore, enableNetwork } from 'firebase/firestore';
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
@@ -19,5 +19,10 @@ const app = initializeApp(firebaseConfig);
 // Initialize Firebase services
 export const auth = getAuth(app);
 export const db = getFirestore(app);
+
+// Enable network for Firestore (fix offline issues)
+enableNetwork(db).catch((error) => {
+  console.warn('Could not enable Firestore network:', error);
+});
 
 export default app;

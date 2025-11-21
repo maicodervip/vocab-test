@@ -88,61 +88,71 @@ export async function createWorkspace(language: Language): Promise<Workspace> {
   const user = getCurrentUser();
   if (!user) throw new Error('No user logged in');
   
-  const userRef = doc(db, 'users', user.uid);
-  const userDoc = await getDoc(userRef);
-  
-  if (!userDoc.exists()) {
-    throw new Error('User document not found');
+  try {
+    const userRef = doc(db, 'users', user.uid);
+    const userDoc = await getDoc(userRef);
+    
+    if (!userDoc.exists()) {
+      throw new Error('User document not found');
+    }
+    
+    const userData = userDoc.data();
+    const workspaces = userData.workspaces || [];
+    
+    // Check if workspace for this language already exists
+    if (workspaces.some((w: Workspace) => w.language === language)) {
+      throw new Error('Workspace for this language already exists');
+    }
+    
+    // Max 3 workspaces
+    if (workspaces.length >= 3) {
+      throw new Error('Maximum 3 workspaces allowed');
+    }
+    
+    const workspace: Workspace = {
+      id: `${language}-${Date.now()}`,
+      language,
+      name: LANGUAGE_NAMES[language],
+      createdAt: new Date().toISOString(),
+    };
+    
+    // Add workspace to user document
+    await updateDoc(userRef, {
+      workspaces: arrayUnion(workspace)
+    });
+    
+    // Create workspace document
+    await setDoc(doc(db, 'workspaces', workspace.id), {
+      userId: user.uid,
+      language,
+      name: workspace.name,
+      createdAt: workspace.createdAt,
+      units: []
+    });
+    
+    return workspace;
+  } catch (error: any) {
+    console.error('Error creating workspace:', error);
+    throw new Error(error.message || 'Failed to create workspace');
   }
-  
-  const userData = userDoc.data();
-  const workspaces = userData.workspaces || [];
-  
-  // Check if workspace for this language already exists
-  if (workspaces.some((w: Workspace) => w.language === language)) {
-    throw new Error('Workspace for this language already exists');
-  }
-  
-  // Max 3 workspaces
-  if (workspaces.length >= 3) {
-    throw new Error('Maximum 3 workspaces allowed');
-  }
-  
-  const workspace: Workspace = {
-    id: `${language}-${Date.now()}`,
-    language,
-    name: LANGUAGE_NAMES[language],
-    createdAt: new Date().toISOString(),
-  };
-  
-  // Add workspace to user document
-  await updateDoc(userRef, {
-    workspaces: arrayUnion(workspace)
-  });
-  
-  // Create workspace document
-  await setDoc(doc(db, 'workspaces', workspace.id), {
-    userId: user.uid,
-    language,
-    name: workspace.name,
-    createdAt: workspace.createdAt,
-    units: []
-  });
-  
-  return workspace;
 }
 
 export async function getUserWorkspaces(): Promise<Workspace[]> {
   const user = getCurrentUser();
   if (!user) return [];
   
-  const userRef = doc(db, 'users', user.uid);
-  const userDoc = await getDoc(userRef);
-  
-  if (!userDoc.exists()) return [];
-  
-  const userData = userDoc.data();
-  return userData.workspaces || [];
+  try {
+    const userRef = doc(db, 'users', user.uid);
+    const userDoc = await getDoc(userRef);
+    
+    if (!userDoc.exists()) return [];
+    
+    const userData = userDoc.data();
+    return userData.workspaces || [];
+  } catch (error) {
+    console.error('Error getting workspaces:', error);
+    return [];
+  }
 }
 
 export async function deleteWorkspace(workspaceId: string): Promise<void> {
