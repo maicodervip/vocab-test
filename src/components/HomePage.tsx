@@ -167,25 +167,24 @@ export default function HomePage({ onStartQuiz, onLogout }: HomePageProps) {
   if (!currentWorkspace) {
     return (
       <div className="home-page">
+        <div className="user-info-bar">
+          <div className="user-badge">
+            <User size={18} />
+            <span>{username}</span>
+          </div>
+          <button className="logout-button" onClick={handleLogout}>
+            <LogOut size={18} />
+            Đăng xuất
+          </button>
+        </div>
+        
         <div className="hero-section">
           <div className="hero-content">
-            <div className="user-info-bar">
-              <div className="user-badge">
-                <User size={18} />
-                <span>{username}</span>
-              </div>
-              <button className="logout-button" onClick={handleLogout}>
-                <LogOut size={18} />
-                Đăng xuất
-              </button>
-            </div>
-            
             <h1 className="hero-title">
               <Sparkles className="sparkle-icon" />
               <span className="gradient-text">Vocab Tester</span>
               <Sparkles className="sparkle-icon" />
             </h1>
-            <p className="hero-subtitle">Học từ vựng đa ngôn ngữ một cách thông minh và hiệu quả</p>
           </div>
         </div>
 
@@ -203,27 +202,26 @@ export default function HomePage({ onStartQuiz, onLogout }: HomePageProps) {
   // Show units for selected workspace
   return (
     <div className="home-page">
+      <div className="user-info-bar">
+        <button className="back-button" onClick={handleBackToWorkspaces}>
+          <ArrowLeft size={18} />
+          Quay lại
+        </button>
+        <div className="user-badge">
+          <User size={18} />
+          <span>{username}</span>
+        </div>
+        <button className="logout-button" onClick={handleLogout}>
+          <LogOut size={18} />
+          Đăng xuất
+        </button>
+      </div>
+      
       <div className="hero-section">
         <div className="hero-content">
-          <div className="user-info-bar">
-            <button className="back-button" onClick={handleBackToWorkspaces}>
-              <ArrowLeft size={18} />
-              Quay lại
-            </button>
-            <div className="user-badge">
-              <User size={18} />
-              <span>{username}</span>
-            </div>
-            <button className="logout-button" onClick={handleLogout}>
-              <LogOut size={18} />
-              Đăng xuất
-            </button>
-          </div>
-          
           <h1 className="hero-title">
             <span className="workspace-lang">{currentWorkspace.name}</span>
           </h1>
-          <p className="hero-subtitle">Không gian học tập {currentWorkspace.name}</p>
         </div>
       </div>
 
