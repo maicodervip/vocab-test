@@ -3,31 +3,52 @@ import HomePage from './components/HomePage';
 import QuizPage from './components/QuizPage';
 import LoginPage from './components/LoginPage';
 import { VocabUnit } from './types';
-import { getCurrentUser } from './services/storage';
+import { onAuthStateChanged } from 'firebase/auth';
+import { auth } from './config/firebase';
 import './index.css';
 
 function App() {
   const [currentUser, setCurrentUser] = useState<string | null>(null);
   const [selectedUnit, setSelectedUnit] = useState<VocabUnit | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Check if user is already logged in
-    const user = getCurrentUser();
-    if (user) {
-      // Clear any old workspace to force showing workspace selector
-      localStorage.removeItem('vocab_current_workspace');
-      setCurrentUser(user);
-    }
+    // Listen to auth state changes
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        setCurrentUser(user.email || user.uid);
+      } else {
+        setCurrentUser(null);
+      }
+      setLoading(false);
+    });
+
+    return () => unsubscribe();
   }, []);
 
-  const handleLogin = (username: string) => {
-    setCurrentUser(username);
+  const handleLogin = (email: string) => {
+    setCurrentUser(email);
   };
 
   const handleLogout = () => {
     setCurrentUser(null);
     setSelectedUnit(null);
   };
+
+  if (loading) {
+    return (
+      <div style={{ 
+        display: 'flex', 
+        justifyContent: 'center', 
+        alignItems: 'center', 
+        height: '100vh',
+        fontSize: '1.2rem',
+        color: '#666'
+      }}>
+        Đang tải...
+      </div>
+    );
+  }
 
   if (!currentUser) {
     return <LoginPage onLogin={handleLogin} />;

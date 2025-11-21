@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Workspace, Language } from '../types';
 import { Globe, Plus, Trash2, BookOpen } from 'lucide-react';
-import { createWorkspace, deleteWorkspace } from '../services/storage';
+import { createWorkspace, deleteWorkspace } from '../services/firebaseService';
 import './WorkspaceSelector.css';
 
 interface WorkspaceSelectorProps {
@@ -20,33 +20,44 @@ export default function WorkspaceSelector({ workspaces, onSelectWorkspace, onWor
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [selectedLanguage, setSelectedLanguage] = useState<Language | null>(null);
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const availableLanguages = (['japanese', 'chinese', 'english'] as Language[]).filter(
     lang => !workspaces.some(w => w.language === lang)
   );
 
-  const handleCreateWorkspace = () => {
+  const handleCreateWorkspace = async () => {
     if (!selectedLanguage) {
       setError('Vui lòng chọn ngôn ngữ');
       return;
     }
 
+    setLoading(true);
     try {
-      createWorkspace(selectedLanguage);
-      onWorkspacesChange();
+      await createWorkspace(selectedLanguage);
+      await onWorkspacesChange();
       setShowCreateModal(false);
       setSelectedLanguage(null);
       setError('');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Đã có lỗi xảy ra');
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleDeleteWorkspace = (workspaceId: string, e: React.MouseEvent) => {
+  const handleDeleteWorkspace = async (workspaceId: string, e: React.MouseEvent) => {
     e.stopPropagation();
     if (confirm('Bạn có chắc muốn xóa không gian học tập này? Tất cả dữ liệu sẽ bị mất.')) {
-      deleteWorkspace(workspaceId);
-      onWorkspacesChange();
+      setLoading(true);
+      try {
+        await deleteWorkspace(workspaceId);
+        await onWorkspacesChange();
+      } catch (err) {
+        alert('Lỗi khi xóa workspace: ' + (err instanceof Error ? err.message : 'Unknown error'));
+      } finally {
+        setLoading(false);
+      }
     }
   };
 
@@ -128,16 +139,20 @@ export default function WorkspaceSelector({ workspaces, onSelectWorkspace, onWor
             )}
 
             <div className="modal-actions">
-              <button className="cancel-button" onClick={() => setShowCreateModal(false)}>
+              <button 
+                className="cancel-button" 
+                onClick={() => setShowCreateModal(false)}
+                disabled={loading}
+              >
                 Hủy
               </button>
               <button 
                 className="confirm-button" 
                 onClick={handleCreateWorkspace}
-                disabled={!selectedLanguage}
+                disabled={!selectedLanguage || loading}
               >
                 <Plus size={18} />
-                Tạo không gian
+                {loading ? 'Đang tạo...' : 'Tạo không gian'}
               </button>
             </div>
           </div>

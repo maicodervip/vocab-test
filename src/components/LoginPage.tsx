@@ -1,67 +1,62 @@
 import { useState } from 'react';
-import { UserPlus, LogIn, Users, Eye, EyeOff } from 'lucide-react';
-import { createUser, loginUser, userExists, getAllUsernames } from '../services/storage';
+import { UserPlus, LogIn, Eye, EyeOff } from 'lucide-react';
+import { registerUser, loginUser } from '../services/firebaseService';
 import './LoginPage.css';
 
 interface LoginPageProps {
-  onLogin: (username: string) => void;
+  onLogin: (email: string) => void;
 }
 
 export default function LoginPage({ onLogin }: LoginPageProps) {
-  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isRegistering, setIsRegistering] = useState(false);
-  const [showExistingUsers, setShowExistingUsers] = useState(false);
   const [error, setError] = useState('');
-  const existingUsers = getAllUsernames();
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setLoading(true);
     
-    const trimmedUsername = username.trim();
+    const trimmedEmail = email.trim().toLowerCase();
     
-    if (trimmedUsername.length < 2) {
-      setError('Tên người dùng phải có ít nhất 2 ký tự');
+    if (!trimmedEmail.includes('@')) {
+      setError('Vui lòng nhập địa chỉ email hợp lệ');
+      setLoading(false);
       return;
     }
 
-    if (password.length < 4) {
-      setError('Mật khẩu phải có ít nhất 4 ký tự');
+    if (password.length < 6) {
+      setError('Mật khẩu phải có ít nhất 6 ký tự');
+      setLoading(false);
       return;
     }
 
     try {
       if (isRegistering) {
         // Register new user
-        if (userExists(trimmedUsername)) {
-          setError('Tên người dùng đã tồn tại');
-          return;
-        }
-        createUser(trimmedUsername, password);
-        localStorage.removeItem('vocab_current_workspace');
-        onLogin(trimmedUsername);
+        await registerUser(trimmedEmail, password);
+        onLogin(trimmedEmail);
       } else {
         // Login existing user
-        const user = loginUser(trimmedUsername, password);
-        if (!user) {
-          setError('Tên người dùng hoặc mật khẩu không đúng');
-          return;
-        }
-        localStorage.removeItem('vocab_current_workspace');
-        onLogin(trimmedUsername);
+        await loginUser(trimmedEmail, password);
+        onLogin(trimmedEmail);
       }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Đã có lỗi xảy ra');
+    } catch (err: any) {
+      if (err.message.includes('email-already-in-use')) {
+        setError('Email này đã được sử dụng');
+      } else if (err.message.includes('weak-password')) {
+        setError('Mật khẩu quá yếu');
+      } else if (err.message.includes('invalid-email')) {
+        setError('Email không hợp lệ');
+      } else {
+        setError(err.message || 'Đã có lỗi xảy ra');
+      }
+    } finally {
+      setLoading(false);
     }
-  };
-
-  const handleSelectUser = (user: string) => {
-    setUsername(user);
-    setPassword('');
-    setIsRegistering(false);
-    setShowExistingUsers(false);
   };
 
   return (
@@ -83,12 +78,13 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
 
           <div className="input-group">
             <input
-              type="text"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              placeholder="Tên người dùng"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="Địa chỉ email"
               className="login-input"
               autoFocus
+              disabled={loading}
             />
           </div>
 
@@ -97,21 +93,29 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
               type={showPassword ? 'text' : 'password'}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder="Mật khẩu"
+              placeholder="Mật khẩu (tối thiểu 6 ký tự)"
               className="login-input"
+              disabled={loading}
             />
             <button
               type="button"
               className="toggle-password"
               onClick={() => setShowPassword(!showPassword)}
+              disabled={loading}
             >
               {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
             </button>
           </div>
           
-          <button type="submit" className="login-button">
-            {isRegistering ? <UserPlus size={20} /> : <LogIn size={20} />}
-            {isRegistering ? 'Đăng ký' : 'Đăng nhập'}
+          <button type="submit" className="login-button" disabled={loading}>
+            {loading ? (
+              '...'
+            ) : (
+              <>
+                {isRegistering ? <UserPlus size={20} /> : <LogIn size={20} />}
+                {isRegistering ? 'Đăng ký' : 'Đăng nhập'}
+              </>
+            )}
           </button>
 
           <button
@@ -121,39 +125,11 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
               setIsRegistering(!isRegistering);
               setError('');
             }}
+            disabled={loading}
           >
             {isRegistering ? 'Đã có tài khoản? Đăng nhập' : 'Chưa có tài khoản? Đăng ký'}
           </button>
         </form>
-
-        {existingUsers.length > 0 && !isRegistering && (
-          <div className="existing-users-section">
-            <button 
-              className="toggle-users-button"
-              onClick={() => setShowExistingUsers(!showExistingUsers)}
-              type="button"
-            >
-              <Users size={18} />
-              {showExistingUsers ? 'Ẩn' : 'Hiện'} tài khoản đã có ({existingUsers.length})
-            </button>
-
-            {showExistingUsers && (
-              <div className="users-list">
-                {existingUsers.map((user) => (
-                  <button
-                    key={user}
-                    className="user-item"
-                    onClick={() => handleSelectUser(user)}
-                    type="button"
-                  >
-                    <LogIn size={16} />
-                    {user}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
       </div>
     </div>
   );

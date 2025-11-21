@@ -3,15 +3,16 @@ import { VocabUnit, Workspace } from '../types';
 import { parseExcelFile } from '../utils';
 import { Upload, BookOpen, Sparkles, Trash2, LogOut, User, ArrowLeft } from 'lucide-react';
 import { 
-  getUnitsForCurrentWorkspace, 
-  saveUnitsForCurrentWorkspace, 
-  deleteUnitForCurrentWorkspace, 
-  getCurrentUser, 
+  getUnitsForWorkspace,
+  saveUnitToWorkspace,
+  deleteUnitFromWorkspace,
   getCurrentWorkspace,
   setCurrentWorkspace,
   getUserWorkspaces,
-  logoutUser 
-} from '../services/storage';
+  logoutUser,
+  clearCurrentWorkspace,
+  getCurrentUser
+} from '../services/firebaseService';
 import WorkspaceSelector from './WorkspaceSelector';
 import './HomePage.css';
 
@@ -34,37 +35,41 @@ export default function HomePage({ onStartQuiz, onLogout }: HomePageProps) {
     
     const workspaceId = getCurrentWorkspace();
     if (workspaceId) {
-      const userWorkspaces = getUserWorkspaces();
-      const workspace = userWorkspaces.find(w => w.id === workspaceId);
-      if (workspace) {
-        setCurrentWorkspaceState(workspace);
-        loadUnits();
-      } else {
-        // Workspace not found or invalid, clear it to show selector
-        localStorage.removeItem('vocab_current_workspace');
-        setCurrentWorkspaceState(null);
-      }
+      loadWorkspaceById(workspaceId);
     }
   }, []);
 
-  const loadWorkspaces = () => {
-    const ws = getUserWorkspaces();
+  const loadWorkspaces = async () => {
+    const ws = await getUserWorkspaces();
     setWorkspaces(ws);
   };
 
-  const loadUnits = () => {
-    const savedUnits = getUnitsForCurrentWorkspace();
+  const loadWorkspaceById = async (workspaceId: string) => {
+    const ws = await getUserWorkspaces();
+    const workspace = ws.find(w => w.id === workspaceId);
+    if (workspace) {
+      setCurrentWorkspaceState(workspace);
+      loadUnits(workspaceId);
+    } else {
+      clearCurrentWorkspace();
+      setCurrentWorkspaceState(null);
+    }
+  };
+
+  const loadUnits = async (workspaceId: string) => {
+    const savedUnits = await getUnitsForWorkspace(workspaceId);
     setUnits(savedUnits);
   };
 
-  const handleSelectWorkspace = (workspace: Workspace) => {
+  const handleSelectWorkspace = async (workspace: Workspace) => {
     setCurrentWorkspace(workspace.id);
     setCurrentWorkspaceState(workspace);
-    const workspaceUnits = getUnitsForCurrentWorkspace();
+    const workspaceUnits = await getUnitsForWorkspace(workspace.id);
     setUnits(workspaceUnits);
   };
 
   const handleBackToWorkspaces = () => {
+    clearCurrentWorkspace();
     setCurrentWorkspaceState(null);
     setUnits([]);
   };
@@ -85,7 +90,12 @@ export default function HomePage({ onStartQuiz, onLogout }: HomePageProps) {
 
     const updatedUnits = [...units, ...newUnits];
     setUnits(updatedUnits);
-    saveUnitsForCurrentWorkspace(updatedUnits);
+    
+    // Save each unit to Firebase
+    for (const unit of newUnits) {
+      await saveUnitToWorkspace(currentWorkspace.id, unit);
+    }
+    
     setIsLoading(false);
     
     // Reset input
@@ -94,17 +104,19 @@ export default function HomePage({ onStartQuiz, onLogout }: HomePageProps) {
     }
   };
 
-  const handleDeleteUnit = (fileName: string) => {
+  const handleDeleteUnit = async (fileName: string) => {
     if (confirm('Bạn có chắc muốn xóa unit này?')) {
-      deleteUnitForCurrentWorkspace(fileName);
-      const updatedUnits = units.filter(unit => unit.fileName !== fileName);
-      setUnits(updatedUnits);
+      if (currentWorkspace) {
+        await deleteUnitFromWorkspace(currentWorkspace.id, fileName);
+        const updatedUnits = units.filter(unit => unit.fileName !== fileName);
+        setUnits(updatedUnits);
+      }
     }
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
     if (confirm('Bạn có chắc muốn đăng xuất?')) {
-      logoutUser();
+      await logoutUser();
       onLogout();
     }
   };
@@ -134,7 +146,7 @@ export default function HomePage({ onStartQuiz, onLogout }: HomePageProps) {
             <div className="user-info-bar">
               <div className="user-badge">
                 <User size={18} />
-                <span>{currentUser}</span>
+                <span>{currentUser?.email || 'User'}</span>
               </div>
               <button className="logout-button" onClick={handleLogout}>
                 <LogOut size={18} />
@@ -174,7 +186,7 @@ export default function HomePage({ onStartQuiz, onLogout }: HomePageProps) {
             </button>
             <div className="user-badge">
               <User size={18} />
-              <span>{currentUser}</span>
+              <span>{currentUser?.email || 'User'}</span>
             </div>
             <button className="logout-button" onClick={handleLogout}>
               <LogOut size={18} />
