@@ -157,9 +157,9 @@ export default function HomePage({ onStartQuiz, onLogout }: HomePageProps) {
       case 'english':
         return 'Cột 1 - English | Cột 2 - Tiếng Việt';
       case 'chinese':
-        return 'Cột 1 - 中文 | Cột 2 - Tiếng Việt';
+        return 'Cột 1 - Hán tự (汉字) | Cột 2 - Pinyin (optional) | Cột 3 - Tiếng Việt';
       case 'japanese':
-        return 'Cột 1 - 日本語 | Cột 2 - Đáp án 2 (optional) | Cột 3 - Tiếng Việt';
+        return 'Cột 1 - Hiragana (ひらがな) | Cột 2 - Hán tự (漢字) (optional) | Cột 3 - Tiếng Việt';
     }
   };
 

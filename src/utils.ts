@@ -41,32 +41,41 @@ export async function parseExcelFile(file: File, language: Language = 'japanese'
     for (let i = 0; i < jsonData.length; i++) {
       const row = jsonData[i];
       
-      // For Japanese: 3 columns (japanese, japaneseAlt, vietnamese)
-      // For Chinese/English: 2 columns (foreign, vietnamese)
       if (language === 'japanese') {
-        // Cột 1: 日本語 (bắt buộc)
-        // Cột 2: 日本語 đáp án 2 (optional)
-        // Cột 3: Tiếng Việt (bắt buộc)
+        // Tiếng Nhật: Cột 1 - Hiragana (bắt buộc) | Cột 2 - Hán tự (optional) | Cột 3 - Tiếng Việt (bắt buộc)
         if (row[0] && row[2]) {
           const item: VocabItem = {
-            foreign: String(row[0]).trim(),
+            foreign: String(row[0]).trim(), // Hiragana
             vietnamese: String(row[2]).trim(),
           };
           
-          // Thêm đáp án thay thế nếu có
+          // Thêm Hán tự làm đáp án thay thế nếu có
           if (row[1] && String(row[1]).trim()) {
-            item.foreignAlt = String(row[1]).trim();
+            item.foreignAlt = String(row[1]).trim(); // Hán tự
           }
           
           items.push(item);
         }
-      } else {
-        // Chinese/English: 2 columns
-        // Cột 1: Foreign language (bắt buộc)
-        // Cột 2: Tiếng Việt (bắt buộc)
+      } else if (language === 'chinese') {
+        // Tiếng Trung: Cột 1 - Hán tự (bắt buộc) | Cột 2 - Pinyin (optional) | Cột 3 - Tiếng Việt (bắt buộc)
+        if (row[0] && row[2]) {
+          const item: VocabItem = {
+            foreign: String(row[0]).trim(), // Hán tự
+            vietnamese: String(row[2]).trim(),
+          };
+          
+          // Thêm Pinyin làm đáp án thay thế nếu có
+          if (row[1] && String(row[1]).trim()) {
+            item.foreignAlt = String(row[1]).trim(); // Pinyin
+          }
+          
+          items.push(item);
+        }
+      } else if (language === 'english') {
+        // Tiếng Anh: Cột 1 - English (bắt buộc) | Cột 2 - Tiếng Việt (bắt buộc)
         if (row[0] && row[1]) {
           const item: VocabItem = {
-            foreign: String(row[0]).trim(),
+            foreign: String(row[0]).trim(), // English
             vietnamese: String(row[1]).trim(),
           };
           
