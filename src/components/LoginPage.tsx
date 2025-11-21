@@ -1,10 +1,11 @@
 import { useState } from 'react';
 import { UserPlus, LogIn, Eye, EyeOff } from 'lucide-react';
+import { User as FirebaseUser } from 'firebase/auth';
 import { registerUser, loginUser } from '../services/firebaseService';
 import './LoginPage.css';
 
 interface LoginPageProps {
-  onLogin: (username: string) => void;
+  onLogin: (user: FirebaseUser) => void;
 }
 
 export default function LoginPage({ onLogin }: LoginPageProps) {
@@ -35,15 +36,15 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
     }
 
     try {
+      let user: FirebaseUser;
       if (isRegistering) {
         // Register new user
-        await registerUser(trimmedUsername, password);
-        onLogin(trimmedUsername);
+        user = await registerUser(trimmedUsername, password);
       } else {
         // Login existing user
-        await loginUser(trimmedUsername, password);
-        onLogin(trimmedUsername);
+        user = await loginUser(trimmedUsername, password);
       }
+      onLogin(user);
     } catch (err: any) {
       setError(err.message || 'Đã có lỗi xảy ra');
     } finally {
