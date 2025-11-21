@@ -20,9 +20,9 @@ export default function QuizPage({ unit, onBack }: QuizPageProps) {
   const [wrongAnswers, setWrongAnswers] = useState<VocabItem[]>([]);
 
   const languageNames: { [key: string]: string } = {
-    'japanese': 'Tiếng Nhật',
-    'chinese': 'Tiếng Trung',
-    'english': 'Tiếng Anh',
+    'japanese': 'tiếng Nhật',
+    'chinese': 'tiếng Trung',
+    'english': 'tiếng Anh',
   };
 
   const languageFlags: { [key: string]: string } = {
@@ -31,8 +31,8 @@ export default function QuizPage({ unit, onBack }: QuizPageProps) {
     'english': '🇬🇧',
   };
 
-  const foreignLangName = languageNames[unit.language] || 'Ngôn ngữ';
-  const foreignFlag = languageFlags[unit.language] || '🌐';
+  const foreignLangName = languageNames[unit.language];
+  const foreignFlag = languageFlags[unit.language];
 
   const startQuiz = (selectedMode: QuizMode) => {
     setMode(selectedMode);
@@ -132,15 +132,15 @@ export default function QuizPage({ unit, onBack }: QuizPageProps) {
           <div className="mode-cards">
             <div className="mode-card card" onClick={() => startQuiz('foreign-to-vn')}>
               <div className="mode-icon">{foreignFlag} → 🇻🇳</div>
-              <h3>{foreignLangName} → Tiếng Việt</h3>
-              <p>Xem từ {foreignLangName.toLowerCase()}, trả lời tiếng Việt</p>
+              <h3>{foreignFlag} {foreignLangName.charAt(0).toUpperCase() + foreignLangName.slice(1)} → 🇻🇳 Tiếng Việt</h3>
+              <p>Xem từ {foreignLangName}, trả lời tiếng Việt</p>
               <button className="mode-button">Chọn chế độ này</button>
             </div>
 
             <div className="mode-card card" onClick={() => startQuiz('vn-to-foreign')}>
               <div className="mode-icon">🇻🇳 → {foreignFlag}</div>
-              <h3>Tiếng Việt → {foreignLangName}</h3>
-              <p>Xem từ tiếng Việt, trả lời {foreignLangName.toLowerCase()}</p>
+              <h3>🇻🇳 Tiếng Việt → {foreignFlag} {foreignLangName.charAt(0).toUpperCase() + foreignLangName.slice(1)}</h3>
+              <p>Xem từ tiếng Việt, trả lời {foreignLangName}</p>
               <button className="mode-button">Chọn chế độ này</button>
             </div>
           </div>
@@ -242,14 +242,14 @@ export default function QuizPage({ unit, onBack }: QuizPageProps) {
         <div className={`quiz-card card ${isCorrect === true ? 'correct' : isCorrect === false ? 'incorrect' : ''}`}>
           <div className="question-section">
             <p className="question-label">
-              {mode === 'foreign-to-vn' ? `${foreignFlag} ${foreignLangName}` : '🇻🇳 Tiếng Việt'}
+              {mode === 'foreign-to-vn' ? `${foreignFlag} ${foreignLangName.charAt(0).toUpperCase() + foreignLangName.slice(1)}` : '🇻🇳 Tiếng Việt'}
             </p>
             <h2 className="question-text">{getQuestion()}</h2>
           </div>
 
           <div className="answer-section">
             <p className="answer-label">
-              {mode === 'foreign-to-vn' ? '🇻🇳 Nhập tiếng Việt' : `${foreignFlag} Nhập ${foreignLangName.toLowerCase()}`}
+              {mode === 'foreign-to-vn' ? '🇻🇳 Nhập tiếng Việt' : `${foreignFlag} Nhập ${foreignLangName}`}
             </p>
             <input
               type="text"
