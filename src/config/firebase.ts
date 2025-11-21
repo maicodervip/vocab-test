@@ -5,12 +5,12 @@ import { getFirestore } from 'firebase/firestore';
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || "AIzaSyDummy_Key_For_Development",
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || "vocab-test.firebaseapp.com",
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || "vocab-test",
-  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || "vocab-test.appspot.com",
-  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || "123456789",
-  appId: import.meta.env.VITE_FIREBASE_APP_ID || "1:123456789:web:abcdef"
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || "AIzaSyBx5km7itkAxBUs2FJ0zpqRqgWL7702EIY",
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || "vocab-test-dfcef.firebaseapp.com",
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || "vocab-test-dfcef",
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || "vocab-test-dfcef.firebasestorage.app",
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || "1081022587442",
+  appId: import.meta.env.VITE_FIREBASE_APP_ID || "1:1081022587442:web:2cd02f8cd40d58b308122b"
 };
 
 // Initialize Firebase
