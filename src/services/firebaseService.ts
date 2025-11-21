@@ -71,10 +71,15 @@ export async function getCurrentUsername(): Promise<string | null> {
   const user = getCurrentUser();
   if (!user) return null;
   
-  const userDoc = await getDoc(doc(db, 'users', user.uid));
-  if (!userDoc.exists()) return null;
-  
-  return userDoc.data().username || null;
+  try {
+    const userDoc = await getDoc(doc(db, 'users', user.uid));
+    if (!userDoc.exists()) return null;
+    
+    return userDoc.data().username || null;
+  } catch (error) {
+    console.error('Error getting username:', error);
+    return null;
+  }
 }
 
 // ============= WORKSPACE FUNCTIONS =============

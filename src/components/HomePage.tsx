@@ -41,30 +41,50 @@ export default function HomePage({ onStartQuiz, onLogout }: HomePageProps) {
   }, []);
 
   const loadUsername = async () => {
-    const name = await getCurrentUsername();
-    if (name) setUsername(name);
+    try {
+      const name = await getCurrentUsername();
+      if (name) setUsername(name);
+    } catch (error) {
+      console.error('Error loading username:', error);
+    }
   };
 
   const loadWorkspaces = async () => {
-    const ws = await getUserWorkspaces();
-    setWorkspaces(ws);
+    try {
+      const ws = await getUserWorkspaces();
+      setWorkspaces(ws);
+    } catch (error) {
+      console.error('Error loading workspaces:', error);
+      setWorkspaces([]);
+    }
   };
 
   const loadWorkspaceById = async (workspaceId: string) => {
-    const ws = await getUserWorkspaces();
-    const workspace = ws.find(w => w.id === workspaceId);
-    if (workspace) {
-      setCurrentWorkspaceState(workspace);
-      loadUnits(workspaceId);
-    } else {
+    try {
+      const ws = await getUserWorkspaces();
+      const workspace = ws.find(w => w.id === workspaceId);
+      if (workspace) {
+        setCurrentWorkspaceState(workspace);
+        loadUnits(workspaceId);
+      } else {
+        clearCurrentWorkspace();
+        setCurrentWorkspaceState(null);
+      }
+    } catch (error) {
+      console.error('Error loading workspace:', error);
       clearCurrentWorkspace();
       setCurrentWorkspaceState(null);
     }
   };
 
   const loadUnits = async (workspaceId: string) => {
-    const savedUnits = await getUnitsForWorkspace(workspaceId);
-    setUnits(savedUnits);
+    try {
+      const savedUnits = await getUnitsForWorkspace(workspaceId);
+      setUnits(savedUnits);
+    } catch (error) {
+      console.error('Error loading units:', error);
+      setUnits([]);
+    }
   };
 
   const handleSelectWorkspace = async (workspace: Workspace) => {
