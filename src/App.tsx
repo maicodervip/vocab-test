@@ -14,6 +14,8 @@ function App() {
     // Check if user is already logged in
     const user = getCurrentUser();
     if (user) {
+      // Clear any old workspace to force showing workspace selector
+      localStorage.removeItem('vocab_current_workspace');
       setCurrentUser(user);
     }
   }, []);

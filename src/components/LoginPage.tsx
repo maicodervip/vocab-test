@@ -40,6 +40,7 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
           return;
         }
         createUser(trimmedUsername, password);
+        localStorage.removeItem('vocab_current_workspace');
         onLogin(trimmedUsername);
       } else {
         // Login existing user
@@ -48,6 +49,7 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
           setError('Tên người dùng hoặc mật khẩu không đúng');
           return;
         }
+        localStorage.removeItem('vocab_current_workspace');
         onLogin(trimmedUsername);
       }
     } catch (err) {
