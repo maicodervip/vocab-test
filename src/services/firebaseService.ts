@@ -11,7 +11,6 @@ import {
   getDoc, 
   updateDoc, 
   deleteDoc,
-  arrayUnion,
   arrayRemove
 } from 'firebase/firestore';
 import { auth, db } from '../config/firebase';
@@ -22,36 +21,6 @@ const LANGUAGE_NAMES: { [key in Language]: string } = {
   chinese: '中文',
   english: 'English',
 };
-
-// Helper function to retry Firestore operations
-async function retryOperation<T>(
-  operation: () => Promise<T>,
-  maxRetries = 3,
-  delay = 1000
-): Promise<T> {
-  let lastError: Error | null = null;
-  
-  for (let i = 0; i < maxRetries; i++) {
-    try {
-      return await operation();
-    } catch (error: any) {
-      lastError = error;
-      console.warn(`Operation failed (attempt ${i + 1}/${maxRetries}):`, error.message);
-      
-      // Don't retry auth errors
-      if (error.code?.startsWith('auth/')) {
-        throw error;
-      }
-      
-      // Wait before retrying
-      if (i < maxRetries - 1) {
-        await new Promise(resolve => setTimeout(resolve, delay * (i + 1)));
-      }
-    }
-  }
-  
-  throw lastError || new Error('Operation failed after retries');
-}
 
 // ============= AUTH FUNCTIONS =============
 
@@ -121,37 +90,43 @@ export async function createWorkspace(language: Language): Promise<Workspace> {
   console.log('[createWorkspace] Starting for language:', language);
   console.log('[createWorkspace] User:', user.uid, user.email);
   
-  return retryOperation(async () => {
-    const userRef = doc(db, 'users', user.uid);
+  const userRef = doc(db, 'users', user.uid);
+  
+  try {
+    // Get or create user document
     console.log('[createWorkspace] Getting user document...');
-    
-    const userDoc = await getDoc(userRef);
-    console.log('[createWorkspace] User doc exists:', userDoc.exists());
+    let userDoc = await getDoc(userRef);
     
     if (!userDoc.exists()) {
-      console.log('[createWorkspace] Creating user document...');
-      // Create user doc if not exists
-      await setDoc(userRef, {
+      console.log('[createWorkspace] User doc not found, creating...');
+      const newUserData = {
         username: user.email?.split('@')[0] || user.uid,
         email: user.email,
         createdAt: new Date().toISOString(),
         workspaces: [],
-      });
+      };
+      await setDoc(userRef, newUserData);
       console.log('[createWorkspace] User document created');
+      
+      // Re-fetch to confirm
+      userDoc = await getDoc(userRef);
+      if (!userDoc.exists()) {
+        throw new Error('Failed to create user document');
+      }
     }
     
-    const userData = userDoc.exists() ? userDoc.data() : { workspaces: [] };
+    const userData = userDoc.data();
     const workspaces = userData.workspaces || [];
     console.log('[createWorkspace] Current workspaces:', workspaces.length);
     
     // Check if workspace for this language already exists
     if (workspaces.some((w: Workspace) => w.language === language)) {
-      throw new Error('Workspace for this language already exists');
+      throw new Error('Không gian học tập cho ngôn ngữ này đã tồn tại');
     }
     
     // Max 3 workspaces
     if (workspaces.length >= 3) {
-      throw new Error('Maximum 3 workspaces allowed');
+      throw new Error('Tối đa 3 không gian học tập');
     }
     
     const workspace: Workspace = {
@@ -163,15 +138,14 @@ export async function createWorkspace(language: Language): Promise<Workspace> {
     
     console.log('[createWorkspace] Creating workspace:', workspace.id);
     
-    // Add workspace to user document
-    console.log('[createWorkspace] Updating user document...');
+    // Update user document with new workspace
+    const updatedWorkspaces = [...workspaces, workspace];
     await updateDoc(userRef, {
-      workspaces: arrayUnion(workspace)
+      workspaces: updatedWorkspaces
     });
     console.log('[createWorkspace] User document updated');
     
     // Create workspace document
-    console.log('[createWorkspace] Creating workspace document...');
     await setDoc(doc(db, 'workspaces', workspace.id), {
       userId: user.uid,
       language,
@@ -182,19 +156,23 @@ export async function createWorkspace(language: Language): Promise<Workspace> {
     console.log('[createWorkspace] Workspace document created successfully');
     
     return workspace;
-  });
+  } catch (error: any) {
+    console.error('[createWorkspace] Error:', error);
+    throw new Error(error.message || 'Không thể tạo không gian học tập');
+  }
 }
 
 export async function getUserWorkspaces(): Promise<Workspace[]> {
   const user = getCurrentUser();
   if (!user) return [];
   
-  return retryOperation(async () => {
+  try {
     const userRef = doc(db, 'users', user.uid);
-    const userDoc = await getDoc(userRef);
+    let userDoc = await getDoc(userRef);
     
     if (!userDoc.exists()) {
       // Create user doc if not exists
+      console.log('[getUserWorkspaces] Creating user document...');
       await setDoc(userRef, {
         username: user.email?.split('@')[0] || user.uid,
         email: user.email,
@@ -206,10 +184,10 @@ export async function getUserWorkspaces(): Promise<Workspace[]> {
     
     const userData = userDoc.data();
     return userData.workspaces || [];
-  }, 3, 500).catch((error) => {
-    console.error('Error getting workspaces:', error);
+  } catch (error) {
+    console.error('[getUserWorkspaces] Error:', error);
     return [];
-  });
+  }
 }
 
 export async function deleteWorkspace(workspaceId: string): Promise<void> {
