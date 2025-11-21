@@ -4,11 +4,11 @@ import { registerUser, loginUser } from '../services/firebaseService';
 import './LoginPage.css';
 
 interface LoginPageProps {
-  onLogin: (email: string) => void;
+  onLogin: (username: string) => void;
 }
 
 export default function LoginPage({ onLogin }: LoginPageProps) {
-  const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isRegistering, setIsRegistering] = useState(false);
@@ -20,10 +20,10 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
     setError('');
     setLoading(true);
     
-    const trimmedEmail = email.trim().toLowerCase();
+    const trimmedUsername = username.trim();
     
-    if (!trimmedEmail.includes('@')) {
-      setError('Vui lòng nhập địa chỉ email hợp lệ');
+    if (trimmedUsername.length < 3) {
+      setError('Tên người dùng phải có ít nhất 3 ký tự');
       setLoading(false);
       return;
     }
@@ -37,23 +37,15 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
     try {
       if (isRegistering) {
         // Register new user
-        await registerUser(trimmedEmail, password);
-        onLogin(trimmedEmail);
+        await registerUser(trimmedUsername, password);
+        onLogin(trimmedUsername);
       } else {
         // Login existing user
-        await loginUser(trimmedEmail, password);
-        onLogin(trimmedEmail);
+        await loginUser(trimmedUsername, password);
+        onLogin(trimmedUsername);
       }
     } catch (err: any) {
-      if (err.message.includes('email-already-in-use')) {
-        setError('Email này đã được sử dụng');
-      } else if (err.message.includes('weak-password')) {
-        setError('Mật khẩu quá yếu');
-      } else if (err.message.includes('invalid-email')) {
-        setError('Email không hợp lệ');
-      } else {
-        setError(err.message || 'Đã có lỗi xảy ra');
-      }
+      setError(err.message || 'Đã có lỗi xảy ra');
     } finally {
       setLoading(false);
     }
@@ -78,10 +70,10 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
 
           <div className="input-group">
             <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="Địa chỉ email"
+              type="text"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              placeholder="Tên người dùng"
               className="login-input"
               autoFocus
               disabled={loading}

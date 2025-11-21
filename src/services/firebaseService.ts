@@ -25,12 +25,15 @@ const LANGUAGE_NAMES: { [key in Language]: string } = {
 
 // ============= AUTH FUNCTIONS =============
 
-export async function registerUser(email: string, password: string): Promise<FirebaseUser> {
+export async function registerUser(username: string, password: string): Promise<FirebaseUser> {
   try {
+    // Convert username to email format for Firebase Auth
+    const email = `${username.toLowerCase().trim()}@vocab.local`;
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
     
     // Create user document in Firestore
     await setDoc(doc(db, 'users', userCredential.user.uid), {
+      username: username,
       email: email,
       createdAt: new Date().toISOString(),
       workspaces: [],
@@ -38,16 +41,21 @@ export async function registerUser(email: string, password: string): Promise<Fir
     
     return userCredential.user;
   } catch (error: any) {
+    if (error.code === 'auth/email-already-in-use') {
+      throw new Error('Tên người dùng đã tồn tại');
+    }
     throw new Error(error.message);
   }
 }
 
-export async function loginUser(email: string, password: string): Promise<FirebaseUser> {
+export async function loginUser(username: string, password: string): Promise<FirebaseUser> {
   try {
+    // Convert username to email format
+    const email = `${username.toLowerCase().trim()}@vocab.local`;
     const userCredential = await signInWithEmailAndPassword(auth, email, password);
     return userCredential.user;
   } catch (error: any) {
-    throw new Error('Email hoặc mật khẩu không đúng');
+    throw new Error('Tên người dùng hoặc mật khẩu không đúng');
   }
 }
 
@@ -57,6 +65,16 @@ export async function logoutUser(): Promise<void> {
 
 export function getCurrentUser(): FirebaseUser | null {
   return auth.currentUser;
+}
+
+export async function getCurrentUsername(): Promise<string | null> {
+  const user = getCurrentUser();
+  if (!user) return null;
+  
+  const userDoc = await getDoc(doc(db, 'users', user.uid));
+  if (!userDoc.exists()) return null;
+  
+  return userDoc.data().username || null;
 }
 
 // ============= WORKSPACE FUNCTIONS =============

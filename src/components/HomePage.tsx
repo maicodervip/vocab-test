@@ -11,7 +11,7 @@ import {
   getUserWorkspaces,
   logoutUser,
   clearCurrentWorkspace,
-  getCurrentUser
+  getCurrentUsername
 } from '../services/firebaseService';
 import WorkspaceSelector from './WorkspaceSelector';
 import './HomePage.css';
@@ -26,11 +26,12 @@ export default function HomePage({ onStartQuiz, onLogout }: HomePageProps) {
   const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
   const [currentWorkspace, setCurrentWorkspaceState] = useState<Workspace | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [username, setUsername] = useState<string>('User');
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const currentUser = getCurrentUser();
 
   // Load workspaces and units on mount
   useEffect(() => {
+    loadUsername();
     loadWorkspaces();
     
     const workspaceId = getCurrentWorkspace();
@@ -38,6 +39,11 @@ export default function HomePage({ onStartQuiz, onLogout }: HomePageProps) {
       loadWorkspaceById(workspaceId);
     }
   }, []);
+
+  const loadUsername = async () => {
+    const name = await getCurrentUsername();
+    if (name) setUsername(name);
+  };
 
   const loadWorkspaces = async () => {
     const ws = await getUserWorkspaces();
@@ -146,7 +152,7 @@ export default function HomePage({ onStartQuiz, onLogout }: HomePageProps) {
             <div className="user-info-bar">
               <div className="user-badge">
                 <User size={18} />
-                <span>{currentUser?.email || 'User'}</span>
+                <span>{username}</span>
               </div>
               <button className="logout-button" onClick={handleLogout}>
                 <LogOut size={18} />
@@ -186,7 +192,7 @@ export default function HomePage({ onStartQuiz, onLogout }: HomePageProps) {
             </button>
             <div className="user-badge">
               <User size={18} />
-              <span>{currentUser?.email || 'User'}</span>
+              <span>{username}</span>
             </div>
             <button className="logout-button" onClick={handleLogout}>
               <LogOut size={18} />

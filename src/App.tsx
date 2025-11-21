@@ -5,6 +5,7 @@ import LoginPage from './components/LoginPage';
 import { VocabUnit } from './types';
 import { onAuthStateChanged } from 'firebase/auth';
 import { auth } from './config/firebase';
+import { getCurrentUsername } from './services/firebaseService';
 import './index.css';
 
 function App() {
@@ -14,9 +15,11 @@ function App() {
 
   useEffect(() => {
     // Listen to auth state changes
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
-        setCurrentUser(user.email || user.uid);
+        // Get username from Firestore
+        const username = await getCurrentUsername();
+        setCurrentUser(username || user.uid);
       } else {
         setCurrentUser(null);
       }
@@ -26,8 +29,8 @@ function App() {
     return () => unsubscribe();
   }, []);
 
-  const handleLogin = (email: string) => {
-    setCurrentUser(email);
+  const handleLogin = (username: string) => {
+    setCurrentUser(username);
   };
 
   const handleLogout = () => {
