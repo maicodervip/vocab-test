@@ -367,11 +367,39 @@
   }
   
   .quiz-card {
-    padding: 2rem;
+    padding: 1.5rem;
+  }
+  
+  .unit-title {
+    font-size: 1.5rem;
+  }
+  
+  .vocab-info {
+    font-size: 0.9rem;
+  }
+  
+  .mode-card h3 {
+    font-size: 1rem;
+  }
+  
+  .mode-card p {
+    font-size: 0.85rem;
   }
   
   .question-text {
-    font-size: 2rem;
+    font-size: 1.5rem;
+  }
+  
+  .result-title {
+    font-size: 1.6rem;
+  }
+  
+  .score-number {
+    font-size: 2.2rem;
+  }
+  
+  .percentage {
+    font-size: 1rem;
   }
   
   .mode-cards {

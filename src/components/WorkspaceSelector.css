@@ -223,6 +223,7 @@
   .create-workspace-button {
     width: 100%;
     justify-content: center;
+    font-size: 0.9rem;
   }
 
   .workspaces-grid {
@@ -230,7 +231,27 @@
   }
 
   .workspace-card {
-    padding: 1.5rem;
+    padding: 1.25rem;
+  }
+  
+  .workspace-name {
+    font-size: 1.1rem;
+  }
+  
+  .workspace-desc {
+    font-size: 0.85rem;
+  }
+  
+  .modal-title {
+    font-size: 1.2rem;
+  }
+  
+  .language-name {
+    font-size: 1rem;
+  }
+  
+  .language-desc {
+    font-size: 0.8rem;
   }
 
   .workspace-icon {

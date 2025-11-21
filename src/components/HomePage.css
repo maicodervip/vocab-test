@@ -160,7 +160,31 @@
 
 @media (max-width: 768px) {
   .hero-title {
-    font-size: 2.5rem;
+    font-size: 1.8rem;
+  }
+  
+  .hero-subtitle {
+    font-size: 0.9rem;
+  }
+  
+  .section-title {
+    font-size: 1.1rem;
+  }
+  
+  .unit-name {
+    font-size: 1rem;
+  }
+  
+  .vocab-count {
+    font-size: 0.8rem;
+  }
+  
+  .upload-hint {
+    font-size: 0.8rem;
+  }
+  
+  .user-badge {
+    font-size: 0.85rem;
   }
   
   .units-grid {

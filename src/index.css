@@ -82,3 +82,24 @@ input:focus {
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
+
+/* Mobile font size adjustments */
+@media (max-width: 768px) {
+  :root {
+    font-size: 14px;
+  }
+  
+  button {
+    padding: 0.5em 1em;
+    font-size: 0.9em;
+  }
+  
+  input {
+    padding: 0.7em 1em;
+    font-size: 0.9em;
+  }
+  
+  .card {
+    padding: 1.25rem;
+  }
+}

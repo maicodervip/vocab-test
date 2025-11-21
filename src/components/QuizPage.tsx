@@ -19,6 +19,21 @@ export default function QuizPage({ unit, onBack }: QuizPageProps) {
   const [showResult, setShowResult] = useState(false);
   const [wrongAnswers, setWrongAnswers] = useState<VocabItem[]>([]);
 
+  const languageNames: { [key: string]: string } = {
+    'japanese': 'Tiếng Nhật',
+    'chinese': 'Tiếng Trung',
+    'english': 'Tiếng Anh',
+  };
+
+  const languageFlags: { [key: string]: string } = {
+    'japanese': '🇯🇵',
+    'chinese': '🇨🇳',
+    'english': '🇬🇧',
+  };
+
+  const foreignLangName = languageNames[unit.language] || 'Ngôn ngữ';
+  const foreignFlag = languageFlags[unit.language] || '🌐';
+
   const startQuiz = (selectedMode: QuizMode) => {
     setMode(selectedMode);
     setQuestions(shuffleArray(unit.items));
@@ -34,12 +49,12 @@ export default function QuizPage({ unit, onBack }: QuizPageProps) {
   
   const getQuestion = () => {
     if (!currentQuestion) return '';
-    return mode === 'jp-to-vn' ? currentQuestion.japanese : currentQuestion.vietnamese;
+    return mode === 'foreign-to-vn' ? currentQuestion.foreign : currentQuestion.vietnamese;
   };
 
   const getCorrectAnswer = () => {
     if (!currentQuestion) return '';
-    return mode === 'jp-to-vn' ? currentQuestion.vietnamese : currentQuestion.japanese;
+    return mode === 'foreign-to-vn' ? currentQuestion.vietnamese : currentQuestion.foreign;
   };
 
   const normalizeText = (text: string) => {
@@ -54,8 +69,8 @@ export default function QuizPage({ unit, onBack }: QuizPageProps) {
     let correct = userAnswer === correctAnswer;
     
     // Nếu có đáp án thay thế, kiểm tra thêm
-    if (!correct && currentQuestion.japaneseAlt && mode === 'vn-to-jp') {
-      const altAnswer = normalizeText(currentQuestion.japaneseAlt);
+    if (!correct && currentQuestion.foreignAlt && mode === 'vn-to-foreign') {
+      const altAnswer = normalizeText(currentQuestion.foreignAlt);
       correct = userAnswer === altAnswer;
     }
     
@@ -115,17 +130,17 @@ export default function QuizPage({ unit, onBack }: QuizPageProps) {
           <p className="vocab-info">{unit.items.length} từ vựng</p>
 
           <div className="mode-cards">
-            <div className="mode-card card" onClick={() => startQuiz('jp-to-vn')}>
-              <div className="mode-icon">🇯🇵 → 🇻🇳</div>
-              <h3>Tiếng Nhật → Tiếng Việt</h3>
-              <p>Xem từ tiếng Nhật, trả lời tiếng Việt</p>
+            <div className="mode-card card" onClick={() => startQuiz('foreign-to-vn')}>
+              <div className="mode-icon">{foreignFlag} → 🇻🇳</div>
+              <h3>{foreignLangName} → Tiếng Việt</h3>
+              <p>Xem từ {foreignLangName.toLowerCase()}, trả lời tiếng Việt</p>
               <button className="mode-button">Chọn chế độ này</button>
             </div>
 
-            <div className="mode-card card" onClick={() => startQuiz('vn-to-jp')}>
-              <div className="mode-icon">🇻🇳 → 🇯🇵</div>
-              <h3>Tiếng Việt → Tiếng Nhật</h3>
-              <p>Xem từ tiếng Việt, trả lời tiếng Nhật</p>
+            <div className="mode-card card" onClick={() => startQuiz('vn-to-foreign')}>
+              <div className="mode-icon">🇻🇳 → {foreignFlag}</div>
+              <h3>Tiếng Việt → {foreignLangName}</h3>
+              <p>Xem từ tiếng Việt, trả lời {foreignLangName.toLowerCase()}</p>
               <button className="mode-button">Chọn chế độ này</button>
             </div>
           </div>
@@ -183,11 +198,11 @@ export default function QuizPage({ unit, onBack }: QuizPageProps) {
                   {wrongAnswers.map((item, idx) => (
                     <div key={idx} className="wrong-item">
                       <span className="wrong-question">
-                        {mode === 'jp-to-vn' ? item.japanese : item.vietnamese}
+                        {mode === 'foreign-to-vn' ? item.foreign : item.vietnamese}
                       </span>
                       <span className="wrong-arrow">→</span>
                       <span className="wrong-answer">
-                        {mode === 'jp-to-vn' ? item.vietnamese : item.japanese}
+                        {mode === 'foreign-to-vn' ? item.vietnamese : item.foreign}
                       </span>
                     </div>
                   ))}
@@ -227,14 +242,14 @@ export default function QuizPage({ unit, onBack }: QuizPageProps) {
         <div className={`quiz-card card ${isCorrect === true ? 'correct' : isCorrect === false ? 'incorrect' : ''}`}>
           <div className="question-section">
             <p className="question-label">
-              {mode === 'jp-to-vn' ? '🇯🇵 Tiếng Nhật' : '🇻🇳 Tiếng Việt'}
+              {mode === 'foreign-to-vn' ? `${foreignFlag} ${foreignLangName}` : '🇻🇳 Tiếng Việt'}
             </p>
             <h2 className="question-text">{getQuestion()}</h2>
           </div>
 
           <div className="answer-section">
             <p className="answer-label">
-              {mode === 'jp-to-vn' ? '🇻🇳 Nhập tiếng Việt' : '🇯🇵 Nhập tiếng Nhật'}
+              {mode === 'foreign-to-vn' ? '🇻🇳 Nhập tiếng Việt' : `${foreignFlag} Nhập ${foreignLangName.toLowerCase()}`}
             </p>
             <input
               type="text"
@@ -252,8 +267,8 @@ export default function QuizPage({ unit, onBack }: QuizPageProps) {
                 <X className="incorrect-icon" />
                 <div>
                   <span>Đáp án đúng: <strong>{getCorrectAnswer()}</strong></span>
-                  {currentQuestion.japaneseAlt && mode === 'vn-to-jp' && (
-                    <span className="alt-answer"> hoặc <strong>{currentQuestion.japaneseAlt}</strong></span>
+                  {currentQuestion.foreignAlt && mode === 'vn-to-foreign' && (
+                    <span className="alt-answer"> hoặc <strong>{currentQuestion.foreignAlt}</strong></span>
                   )}
                 </div>
               </div>

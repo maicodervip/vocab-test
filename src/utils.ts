@@ -1,5 +1,5 @@
 import * as XLSX from 'xlsx';
-import { VocabUnit, VocabItem } from './types';
+import { VocabUnit, VocabItem, Language } from './types';
 
 export async function loadVocabUnits(): Promise<VocabUnit[]> {
   const units: VocabUnit[] = [];
@@ -28,7 +28,7 @@ async function getExcelFiles(): Promise<File[]> {
   return [];
 }
 
-export async function parseExcelFile(file: File): Promise<VocabUnit | null> {
+export async function parseExcelFile(file: File, language: Language = 'japanese'): Promise<VocabUnit | null> {
   try {
     const data = await file.arrayBuffer();
     const workbook = XLSX.read(data, { type: 'array' });
@@ -40,27 +40,45 @@ export async function parseExcelFile(file: File): Promise<VocabUnit | null> {
     // Skip header row if exists, start from row 1
     for (let i = 0; i < jsonData.length; i++) {
       const row = jsonData[i];
-      // Cột 1: Ngôn ngữ (bắt buộc)
-      // Cột 2: Ngôn ngữ đáp án 2 (optional)
-      // Cột 3: Tiếng Việt (bắt buộc)
-      if (row[0] && row[2]) {
-        const item: VocabItem = {
-          japanese: String(row[0]).trim(),
-          vietnamese: String(row[2]).trim(),
-        };
-        
-        // Thêm đáp án thay thế nếu có
-        if (row[1] && String(row[1]).trim()) {
-          item.japaneseAlt = String(row[1]).trim();
+      
+      // For Japanese: 3 columns (japanese, japaneseAlt, vietnamese)
+      // For Chinese/English: 2 columns (foreign, vietnamese)
+      if (language === 'japanese') {
+        // Cột 1: 日本語 (bắt buộc)
+        // Cột 2: 日本語 đáp án 2 (optional)
+        // Cột 3: Tiếng Việt (bắt buộc)
+        if (row[0] && row[2]) {
+          const item: VocabItem = {
+            foreign: String(row[0]).trim(),
+            vietnamese: String(row[2]).trim(),
+          };
+          
+          // Thêm đáp án thay thế nếu có
+          if (row[1] && String(row[1]).trim()) {
+            item.foreignAlt = String(row[1]).trim();
+          }
+          
+          items.push(item);
         }
-        
-        items.push(item);
+      } else {
+        // Chinese/English: 2 columns
+        // Cột 1: Foreign language (bắt buộc)
+        // Cột 2: Tiếng Việt (bắt buộc)
+        if (row[0] && row[1]) {
+          const item: VocabItem = {
+            foreign: String(row[0]).trim(),
+            vietnamese: String(row[1]).trim(),
+          };
+          
+          items.push(item);
+        }
       }
     }
     
     return {
       name: file.name.replace(/\.(xlsx?|csv)$/i, ''),
       fileName: file.name,
+      language,
       items,
     };
   } catch (error) {

@@ -195,24 +195,24 @@
 /* Mobile responsive */
 @media (max-width: 768px) {
   .login-container {
-    padding: 2rem 1.5rem;
+    padding: 1.5rem 1.25rem;
   }
 
   .login-title {
-    font-size: 2rem;
+    font-size: 1.8rem;
   }
 
   .login-subtitle {
-    font-size: 0.9rem;
+    font-size: 0.85rem;
   }
 
   .login-input {
-    font-size: 1rem;
-    padding: 0.875rem;
+    font-size: 0.9rem;
+    padding: 0.75rem;
   }
 
   .login-button {
-    font-size: 1rem;
+    font-size: 0.9rem;
     padding: 0.875rem;
   }
 }

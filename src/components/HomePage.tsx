@@ -108,7 +108,7 @@ export default function HomePage({ onStartQuiz, onLogout }: HomePageProps) {
     const newUnits: VocabUnit[] = [];
 
     for (let i = 0; i < files.length; i++) {
-      const unit = await parseExcelFile(files[i]);
+      const unit = await parseExcelFile(files[i], currentWorkspace.language);
       if (unit && unit.items.length > 0) {
         newUnits.push(unit);
       }
